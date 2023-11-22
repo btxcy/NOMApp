@@ -12,6 +12,10 @@ import imageio
 from com.chaquo.python import Python
 
 
+# testing purpose
+import psutil
+
+
 
 def loadFiles_plus(path_im, keyword = ""):
     re_fs = []
@@ -98,7 +102,8 @@ def cleanUNet(model):
 
 def main():
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
     tar = join(dirname(__file__), "unet_fr.tar.xz")
     tar_file = "tar -xf " + tar
     os.system(tar_file)
@@ -123,6 +128,8 @@ def main():
 
     dice_score = 0
 
+    list_of_ram = []
+
     plt.figure(figsize=(12, 4))
     for i in range(len(fullfs_im)):
 
@@ -139,6 +146,13 @@ def main():
         mask_pred = net(img)
         print("done1")
 
+        # ram check
+        # Getting % usage of virtual_memory ( 3rd field)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        # Getting usage of virtual_memory in GB ( 4th field)
+        # print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
+
+        list_of_ram.append(psutil.virtual_memory()[3]/1000000000)
 
         showmask = mask_pred.argmax(dim=1).squeeze()
         print("done2")
@@ -183,6 +197,10 @@ def main():
 
 
     print("average Dice Score:", dice_score.item()/len(fullfs_im))
+
+    for i in range(len(list_of_ram)):
+        print('{} picture: RAM Used (GB): {}'.format(i, list_of_ram[i]))
+
 
     return
 

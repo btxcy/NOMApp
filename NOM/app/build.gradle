@@ -29,6 +29,7 @@ android {
                 install "torchvision"
                 install "matplotlib"
                 install "imageio"
+                install "psutil"
                 // install "mkl-2024.0.0-py2.py3-none-manylinux1_i686.whl"
             }
         }

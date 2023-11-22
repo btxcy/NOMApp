@@ -2,6 +2,7 @@ package com.example.nom;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -13,9 +14,11 @@ import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
-    TextView status = (TextView) findViewById(R.id.status);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,17 +26,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button start = (Button) findViewById(R.id.start);
+        TextView status_txt = (TextView) findViewById(R.id.status);
+
+        memory();
 
         start.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View view) {
-                status.setVisibility(View.GONE);
+                status_txt.setVisibility(View.GONE);
                 Log.d("debug", "run0");
                 run();
                 Log.d("debug", "run1");
                 // status.setText(result);
-
+                status_txt.setVisibility(View.VISIBLE);
             }
         });
 
@@ -54,6 +60,18 @@ public class MainActivity extends AppCompatActivity {
 //        }
     }
 
+    void memory() {
+        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        activityManager.getMemoryInfo(mi);
+        double availableMegs = mi.availMem / 0x100000L;
+
+        double percentAvail = 100 - (mi.availMem / (double) mi.totalMem * 100.0);
+
+        Log.d("available memory", String.format ("%.0f", availableMegs));
+        Log.d("percentage used memory", String.format ("%.0f", percentAvail));
+    }
+
     void run() {
 
         if (!Python.isStarted()) {
@@ -68,7 +86,5 @@ public class MainActivity extends AppCompatActivity {
         PyObject obj = pyobj.callAttr("main");
         Log.d("debug", "run7");
         // return pyobj.toString();
-        Log.d("debug", obj.toString());
-        status.setVisibility(View.VISIBLE);
     }
 }
