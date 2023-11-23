@@ -88,6 +88,9 @@ class  Conv2d_FR4d(nn.Module):
         self.weightrate = 0
         self.weightnum = -1
 
+        self.flag_wei = 0
+
+
     def setDroprate(self, droprate):
         self.droprate = droprate
 
@@ -111,9 +114,19 @@ class  Conv2d_FR4d(nn.Module):
 
     def forward(self, data):
 
+        #print(self.flag_wei)
+        if self.flag_wei == 0:
+            print("1st")
+            print(self.flag_wei)
+            self.o_weight = idct_4d(self.weight)
+            self.flag_wei += 1
+            # print(self.flag_wei)
+            #print("Run Init2")
+            # del self.weight
+        #print(self.flag_wei)
+        #print("---")
 
-        weight = idct_4d(self.weight)
-        output = F.conv2d(data, weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
+        output = F.conv2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
 
         return output
 
@@ -146,6 +159,8 @@ class Linear_FR2d(nn.Module):
         self.weightrate = 0
         self.weightnum = -1
 
+        self.o_weight = idct_2d(self.weight)
+
 
     def setDroprate(self, droprate):
         self.droprate = droprate
@@ -172,14 +187,9 @@ class Linear_FR2d(nn.Module):
 
     def forward(self, data):
 
-
-        weight = idct_2d(self.weight)
-        output = F.linear(data, weight, self.bias)
-
+        output = F.linear(data, self.o_weight, self.bias)
 
         return output
-
-
 
 class Conv2d(Conv2d_FR4d):
     pass
@@ -269,21 +279,28 @@ class  ConvTranspose2d_FR4d(nn.Module):
         self.weightrate = 0
         self.weightnum = -1
 
-
-
         if directdrop:
             self.dropcnt = self.minnum + 1
+
+        self.flag_wei = 0
 
     def reset(self):
         self.minnum = max(round(self.weight.numel()*self.minrate//self.groups), 16)
         self.IDROP.fill_(1.0)
         self.dropcnt = self.minnum + 10
 
-
     def forward(self, data):
 
-        weight = idct_4d(self.weight)
-        x = F.conv_transpose2d(data, weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups)
+        if self.flag_wei == 0:
+            print("2nd")
+            print(self.flag_wei)
+            self.o_weight = idct_4d(self.weight)
+            self.flag_wei += 1
+            # print(self.flag_wei)
+
+            # print("Run Init1")
+
+        x = F.conv_transpose2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups)
 
         return x
 
