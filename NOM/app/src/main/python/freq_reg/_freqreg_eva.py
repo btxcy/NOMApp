@@ -88,7 +88,8 @@ class  Conv2d_FR4d(nn.Module):
         self.weightrate = 0
         self.weightnum = -1
 
-        self.flag_wei = 0
+        # make the idct only runs once
+        self.flag_weight = 0
 
 
     def setDroprate(self, droprate):
@@ -115,16 +116,14 @@ class  Conv2d_FR4d(nn.Module):
     def forward(self, data):
 
         #print(self.flag_wei)
-        if self.flag_wei == 0:
-            print("1st")
-            print(self.flag_wei)
+        if self.flag_weight == 0:
+            # print("1st")
+            # print(self.flag_wei)
             self.o_weight = idct_4d(self.weight)
-            self.flag_wei += 1
+            self.flag_weight += 1
+            del self.weight
             # print(self.flag_wei)
             #print("Run Init2")
-            # del self.weight
-        #print(self.flag_wei)
-        #print("---")
 
         output = F.conv2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
 
@@ -158,9 +157,9 @@ class Linear_FR2d(nn.Module):
 
         self.weightrate = 0
         self.weightnum = -1
-
-        self.o_weight = idct_2d(self.weight)
-
+        
+        # make the idct only runs once
+        self.flag_weight = 0
 
     def setDroprate(self, droprate):
         self.droprate = droprate
@@ -186,6 +185,14 @@ class Linear_FR2d(nn.Module):
         self.threval = self.IDROP.numel()
 
     def forward(self, data):
+
+        if self.flag_weight == 0:
+            # print("2nd")
+            # print(self.flag_wei)
+            self.o_weight = idct_2d(self.weight)
+            self.flag_weight += 1
+            # print(self.flag_wei)
+            # print("Run Init1")
 
         output = F.linear(data, self.o_weight, self.bias)
 
@@ -282,7 +289,8 @@ class  ConvTranspose2d_FR4d(nn.Module):
         if directdrop:
             self.dropcnt = self.minnum + 1
 
-        self.flag_wei = 0
+        # make the idct only runs once
+        self.flag_weight = 0
 
     def reset(self):
         self.minnum = max(round(self.weight.numel()*self.minrate//self.groups), 16)
@@ -291,11 +299,12 @@ class  ConvTranspose2d_FR4d(nn.Module):
 
     def forward(self, data):
 
-        if self.flag_wei == 0:
-            print("2nd")
-            print(self.flag_wei)
+        if self.flag_weight == 0:
+            # print("2nd")
+            # print(self.flag_wei)
             self.o_weight = idct_4d(self.weight)
-            self.flag_wei += 1
+            self.flag_weight += 1
+            del self.weight
             # print(self.flag_wei)
 
             # print("Run Init1")

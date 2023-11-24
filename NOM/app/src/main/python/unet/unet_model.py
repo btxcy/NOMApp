@@ -1,4 +1,8 @@
 from .unet_parts import *
+from com.chaquo.python import Python
+import psutil
+from os.path import dirname, join
+import torch
 
 
 class UNet(nn.Module):
@@ -20,18 +24,148 @@ class UNet(nn.Module):
         self.up4 = (Up(128, 64, bilinear))
         self.outc = (OutConv(64, n_classes))
 
+        self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
+        self.pt_path0 = join(dirname(self.file_dir), 'tensor/tensor0.pt') #x
+        self.pt_path1 = join(dirname(self.file_dir), 'tensor/tensor1.pt') #x1
+        self.pt_path2 = join(dirname(self.file_dir), 'tensor/tensor2.pt') #x2
+        self.pt_path3 = join(dirname(self.file_dir), 'tensor/tensor3.pt') #x3
+        self.pt_path4 = join(dirname(self.file_dir), 'tensor/tensor4.pt') #x4
+        self.pt_path5 = join(dirname(self.file_dir), 'tensor/tensor5.pt') #x5
+
     def forward(self, x):
+
         x1 = self.inc(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
-        x = self.up1(x5, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.up4(x, x1)
-        logits = self.outc(x)
-        return logits
+        del x
+        # print("x1")
+        # print(x1)
+        print('RAM Used (GB) for the output inc x1:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x1, self.pt_path1)
+        del x1
+        # print(x1)
+        print('RAM Used (GB) after save inc x1:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        x2 = self.down1(torch.load(self.pt_path1))
+
+        # print("x2")
+        # print(x2)
+        print('RAM Used (GB) for the output down1 x2:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x2, self.pt_path2)
+        del x2
+        # print(x2)
+        print('RAM Used (GB) after save down1 x2:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        # exit()
+        #################################################################################
+        x3 = self.down2(torch.load(self.pt_path2))
+        
+        print('RAM Used (GB) for the output down2 x3:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x3, self.pt_path3)
+        del x3
+        # print(x3)
+        print('RAM Used (GB) after save down2 x3:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        x4 = self.down3(torch.load(self.pt_path3))
+
+        print('RAM Used (GB) for the output down3 x4:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x4, self.pt_path4)
+        del x4
+        # print(x4)
+        print('RAM Used (GB) after save down3 x4:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        x5 = self.down4(torch.load(self.pt_path4))
+
+        print('RAM Used (GB) for the output down4 x5:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x5, self.pt_path5)
+        del x5
+        # print(x5)
+        print('RAM Used (GB) after save down4 x5:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        x = self.up1(torch.load(self.pt_path5), torch.load(self.pt_path4))
+        # print(x)
+
+        print('RAM Used (GB) for the output up1 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x, self.pt_path0)
+        del x
+        # print(x)
+        print('RAM Used (GB) after save up1 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        # print(torch.load(self.pt_path0))
+        x = self.up2(torch.load(self.pt_path0), torch.load(self.pt_path3))
+
+        print('RAM Used (GB) for the output up2 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x, self.pt_path0)
+        del x
+        # print(x)
+        print('RAM Used (GB) after save up2 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        x = self.up3(torch.load(self.pt_path0), torch.load(self.pt_path2))
+
+        print('RAM Used (GB) for the output up3 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x, self.pt_path0)
+        del x
+        # print(x)
+        print('RAM Used (GB) after save up3 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+
+        # memory check
+        x = self.up4(torch.load(self.pt_path0), torch.load(self.pt_path1))
+
+        print('RAM Used (GB) for the output up4 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(x, self.pt_path0)
+        del x
+        # print(x)
+        print('RAM Used (GB) after save up4 x:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #################################################################################
+        logits = self.outc(torch.load(self.pt_path0))
+
+        #print(logits)
+
+        print('RAM Used (GB) for the output outc logits:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        torch.save(logits, self.pt_path0)
+        del logits
+        # print(x)
+        print('RAM Used (GB) after save outc logits:', psutil.virtual_memory()[3]/1000000000)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+
+        #print("load")
+        #print(self.pt_path0)
+
+        return torch.load(self.pt_path0)
+
+    '''
+    # these methods need to be generalized for several inputs
+    def load(self, parameter = 1):
+        pass
+    def save(self, input1 = None, input2 = None, parameter = 1):
+        pass
+    '''
 
     def use_checkpointing(self):
         self.inc = torch.utils.checkpoint(self.inc)

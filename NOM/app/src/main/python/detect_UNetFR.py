@@ -128,8 +128,6 @@ def main():
 
     dice_score = 0
 
-    list_of_ram = []
-
     plt.figure(figsize=(12, 4))
     for i in range(len(fullfs_im)):
 
@@ -138,7 +136,6 @@ def main():
         lab = torch.tensor(imageio.imread(fullfs_gt[i]), dtype=torch.float32)/255.0
 
         print("segmenting files:", fullfs_im[i])
-
 
         img = img.permute(2, 0, 1).unsqueeze(0).to(device=device, dtype=torch.float32)
         lab = lab.unsqueeze(0).to(device=device, dtype=torch.long)
@@ -152,13 +149,10 @@ def main():
         # Getting usage of virtual_memory in GB ( 4th field)
         print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
 
-        list_of_ram.append(psutil.virtual_memory()[3]/1000000000)
-
         showmask = mask_pred.argmax(dim=1).squeeze()
         print("done2")
         showgt = lab.squeeze()
         print("done3")
-
         lab = F.one_hot(lab, net.n_classes).permute(0, 3, 1, 2).float()
         print("done4")
         mask_pred = F.one_hot(mask_pred.argmax(dim=1), net.n_classes).permute(0, 3, 1, 2).float()
@@ -180,7 +174,6 @@ def main():
 
         # out_dir = join(dirname(__file__), "testimgs/output/result.png")
         file_dir = str(Python.getPlatform().getApplication().getFilesDir())
-        print(file_dir)
         out0 = join(dirname(file_dir), 'output/result' + str(i) + '_0.png')
         print(out0)
         out1 = join(dirname(file_dir), 'output/result' + str(i) + '_1.png')
@@ -191,16 +184,10 @@ def main():
         plt.imsave(out1, showgt.detach().cpu().numpy())
         plt.imsave(out2, showmask.detach().cpu().numpy())
 
-        # exit()
-
         plt.pause(0.1)
 
 
     print("average Dice Score:", dice_score.item()/len(fullfs_im))
-
-    for i in range(len(list_of_ram)):
-        print('{} picture: RAM Used (GB): {}'.format(i, list_of_ram[i]))
-
 
     return
 

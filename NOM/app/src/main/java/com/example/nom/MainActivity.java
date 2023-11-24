@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         TextView status_txt = (TextView) findViewById(R.id.status);
 
         memory();
+        run();
 
         start.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")

@@ -18,7 +18,7 @@ try:
 
     def idct_irfft_impl(V):
 
-        # convert numpy
+        # convert to numpy
         num_tensor = torch.view_as_complex(V).detach().numpy()
         return_value_numpy = np.fft.irfft(num_tensor, n=V.shape[1], axis=1)
 
@@ -31,6 +31,7 @@ try:
         # return torch.fft.irfft(torch.view_as_complex(V), n=V.shape[1], dim=1)
 
         return torch.from_numpy(return_value_numpy).float()
+    
 except ImportError:
     def dct1_rfft_impl(x):
         return torch.rfft(x, 1)
