@@ -127,14 +127,31 @@ def main():
     fs_gt, fullfs_gt = loadFiles_plus(mask_dir, 'png')
 
     dice_score = 0
+    
+    # file directory
+    file_dir = str(Python.getPlatform().getApplication().getFilesDir())
+    # mem init
+    pt_mem = join(dirname(file_dir), 'mem_usage.txt') #x5
+    f = open(pt_mem, "w")
+    f.write("Memory usage: \n")
+    f.close()
+    mem_usage = []
 
     plt.figure(figsize=(12, 4))
     for i in range(len(fullfs_im)):
+        
+        # ram check
+        # Getting % usage of virtual_memory (3rd field)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        # Getting usage of virtual_memory in GB (4th field)
+        print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
+        mem_usage.append(psutil.virtual_memory()[3]/1000000000)
 
         img = torch.tensor(imageio.imread(fullfs_im[i]), dtype=torch.float32)/255.0
         img = img.half()
 
         print("env path:", os.environ['HOME'])
+        # This line goes with the tensor cut part
         # img = img[:,:-1,:]
         # print(img.shape)
         # input("eee")
@@ -146,6 +163,7 @@ def main():
         lab = lab.unsqueeze(0).to(device=device, dtype=torch.long)
 
         '''
+        ###########################
         # run the tensor cut here #
         # Assuming image_tensor is of shape [B, C, H, W]
         _, C, H, W = img.shape
@@ -173,17 +191,12 @@ def main():
         mask_pred = torch.cat((mask_pred, last_column), dim=3)
         ###########################
         '''
+        
 
         mask_pred = net(img)
 
-        print(mask_pred.shape)
+        # print(mask_pred.shape)
         print("done1")
-
-        # ram check
-        # Getting % usage of virtual_memory ( 3rd field)
-        print('RAM memory % used:', psutil.virtual_memory()[2])
-        # Getting usage of virtual_memory in GB ( 4th field)
-        print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
 
         showmask = mask_pred.argmax(dim=1).squeeze()
         print("done2")
@@ -208,28 +221,39 @@ def main():
         # plt.imshow(showmask.detach().cpu().numpy())
         # plt.title("Binary Mask")
 
-        # out_dir = join(dirname(__file__), "testimgs/output/result.png")
-        # file_dir = str(Python.getPlatform().getApplication().getFilesDir())
-        # out0 = join(dirname(file_dir), 'output/result' + str(i) + '_0.png')
-        # print(out0)
-        # out1 = join(dirname(file_dir), 'output/result' + str(i) + '_1.png')
-        # print(out1)
-        # out2 = join(dirname(file_dir), 'output/result' + str(i) + '_2.png')
-        # print(out2)
-        out0 = join(dirname(__file__), 'output_test/result' + str(i) + '_0.png')
+        out0 = join(dirname(file_dir), 'output/result' + str(i) + '_0.png')
         print(out0)
-        out1 = join(dirname(__file__), 'output_test/result' + str(i) + '_1.png')
+        out1 = join(dirname(file_dir), 'output/result' + str(i) + '_1.png')
         print(out1)
-        out2 = join(dirname(__file__), 'output_test/result' + str(i) + '_2.png')
+        out2 = join(dirname(file_dir), 'output/result' + str(i) + '_2.png')
         print(out2)
+        # out0 = join(dirname(__file__), 'output_test/result' + str(i) + '_0.png')
+        # print(out0)
+        # out1 = join(dirname(__file__), 'output_test/result' + str(i) + '_1.png')
+        # print(out1)
+        # out2 = join(dirname(__file__), 'output_test/result' + str(i) + '_2.png')
+        # print(out2)
         plt.imsave(out0, img.squeeze().permute(1, 2, 0).detach().cpu().numpy())
         plt.imsave(out1, showgt.detach().cpu().numpy())
         plt.imsave(out2, showmask.detach().cpu().numpy())
 
         plt.pause(0.1)
 
+        f = open(pt_mem, "a")
+        f.write("Main usage {}: ".format(i))
+        f.write(str(mem_usage))
+        f.write("\n")
+        f.close()
+
+    
+
 
     print("average Dice Score:", dice_score.item()/len(fullfs_im))
+
+    f = open(pt_mem, "a")
+    f.write("Dice Score: {}".format(dice_score.item()/len(fullfs_im)))
+    f.write("\n")
+    f.close()
 
     return
 
