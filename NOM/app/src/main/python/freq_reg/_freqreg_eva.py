@@ -6,6 +6,10 @@ from torch.autograd import Variable
 
 from ._dct import idct_4d
 
+from com.chaquo.python import Python
+import psutil
+from os.path import dirname, join
+
 
 
 def getZIdx_4d(data):
@@ -91,6 +95,10 @@ class  Conv2d_FR4d(nn.Module):
         # make the idct only runs once
         self.flag_weight = 0
 
+        self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
+        self.pt_path_fr = join(dirname(self.file_dir), 'tensor/tensor_fr.pt') #x1
+
+
 
     def setDroprate(self, droprate):
         self.droprate = droprate
@@ -126,8 +134,10 @@ class  Conv2d_FR4d(nn.Module):
             #print("Run Init2")
 
         output = F.conv2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
+        torch.save(output, self.pt_path_fr)
+        del output
 
-        return output
+        return torch.load(self.pt_path_fr)
 
 
 class Linear_FR2d(nn.Module):
@@ -292,6 +302,10 @@ class  ConvTranspose2d_FR4d(nn.Module):
         # make the idct only runs once
         self.flag_weight = 0
 
+        self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
+        self.pt_path_fr_conv_transpose = join(dirname(self.file_dir), 'tensor/tensor_fr_conv_transpose.pt') #x1
+        # self.pt_path_fr_conv_transpose = join(dirname(__file__), 'output_tensors/tensor_fr_conv_transpose.pt') #x1
+
     def reset(self):
         self.minnum = max(round(self.weight.numel()*self.minrate//self.groups), 16)
         self.IDROP.fill_(1.0)
@@ -311,7 +325,10 @@ class  ConvTranspose2d_FR4d(nn.Module):
 
         x = F.conv_transpose2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups)
 
-        return x
+        torch.save(x, self.pt_path_fr_conv_transpose)
+        del x
+
+        return torch.load(self.pt_path_fr_conv_transpose)
 
 
 class ConvTranspose2d(ConvTranspose2d_FR4d):

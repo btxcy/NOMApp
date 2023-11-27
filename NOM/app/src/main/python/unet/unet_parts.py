@@ -26,6 +26,7 @@ class DoubleConv(nn.Module):
 
         self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
         self.pt_path_double_conv1 = join(dirname(self.file_dir), 'tensor/tensor_double_conv1.pt') #x1
+        # self.pt_path_double_conv1 = join(dirname(__file__), 'output_tensors/tensor_double_conv1.pt') #x1
 
     def forward(self, x):
         torch.save(x, self.pt_path_double_conv1)
@@ -45,6 +46,7 @@ class Down(nn.Module):
 
         self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
         self.pt_path_down1 = join(dirname(self.file_dir), 'tensor/tensor_down1.pt') #x1
+        # self.pt_path_down1 = join(dirname(__file__), 'output_tensors/tensor_down1.pt') #x1
 
     def forward(self, x):
         torch.save(x, self.pt_path_down1)
@@ -60,14 +62,20 @@ class Up(nn.Module):
 
         if bilinear:
             self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            # print('RAM Used (GB) for the Up Bilinear:', psutil.virtual_memory()[3]/1000000000)
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
+            # print('RAM Used (GB) for the Up DoubleConv:', psutil.virtual_memory()[3]/1000000000)
         else:
             self.up = fr.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2, minrate=0.001, droprate=0.1, bias=False)
+            # print('RAM Used (GB) for the Up ConvTranspose:', psutil.virtual_memory()[3]/1000000000)
             self.conv = DoubleConv(in_channels, out_channels)
+            # print('RAM Used (GB) for the Up DoubleConv:', psutil.virtual_memory()[3]/1000000000)
 
         self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
         self.pt_path_up1 = join(dirname(self.file_dir), 'tensor/tensor_up1.pt') #x1
         self.pt_path_up2 = join(dirname(self.file_dir), 'tensor/tensor_up2.pt') #x2
+        # self.pt_path_up1 = join(dirname(__file__), 'output_tensors/tensor_up1.pt') #x1
+        # self.pt_path_up2 = join(dirname(__file__), 'output_tensors/tensor_up2.pt') #x2
 
     def forward(self, x1, x2):
         x1 = self.up(x1)

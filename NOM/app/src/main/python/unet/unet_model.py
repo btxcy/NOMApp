@@ -32,6 +32,13 @@ class UNet(nn.Module):
         self.pt_path4 = join(dirname(self.file_dir), 'tensor/tensor4.pt') #x4
         self.pt_path5 = join(dirname(self.file_dir), 'tensor/tensor5.pt') #x5
 
+        # self.pt_path0 = join(dirname(__file__), 'output_tensors/tensor0.pt') #x
+        # self.pt_path1 = join(dirname(__file__), 'output_tensors/tensor1.pt') #x1
+        # self.pt_path2 = join(dirname(__file__), 'output_tensors/tensor2.pt') #x2
+        # self.pt_path3 = join(dirname(__file__), 'output_tensors/tensor3.pt') #x3
+        # self.pt_path4 = join(dirname(__file__), 'output_tensors/tensor4.pt') #x4
+        # self.pt_path5 = join(dirname(__file__), 'output_tensors/tensor5.pt') #x5
+
     def forward(self, x):
 
         x1 = self.inc(x)
