@@ -29,35 +29,20 @@ public class MainActivity extends AppCompatActivity {
         TextView status_txt = (TextView) findViewById(R.id.status);
 
         memory();
+        run();
 
         start.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View view) {
-                status_txt.setVisibility(View.GONE);
+                // status_txt.setVisibility(View.GONE);
                 Log.d("debug", "run0");
                 run();
                 Log.d("debug", "run1");
                 // status.setText(result);
-                status_txt.setVisibility(View.VISIBLE);
+                // status_txt.setVisibility(View.VISIBLE);
             }
         });
-
-//        if (should_start) {
-//
-//            status.setText("Working...");
-//            if (!Python.isStarted()) {
-//                Python.start(new AndroidPlatform(MainActivity.this));
-//            }
-//            Python py = Python.getInstance();
-//            PyObject pyobj = py.getModule("detect_UNetFR");
-//
-//            PyObject obj = pyobj.callAttr("main");
-//
-//            should_start = false;
-//
-//            status.setText(obj.toString());
-//        }
     }
 
     void memory() {
