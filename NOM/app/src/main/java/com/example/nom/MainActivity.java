@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         Button run_b = (Button) findViewById(R.id.run);
 
         memory();
+        run();
 
         cam.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
