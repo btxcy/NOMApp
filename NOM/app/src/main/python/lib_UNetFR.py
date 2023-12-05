@@ -12,8 +12,6 @@ import imageio
 from com.chaquo.python import Python
 
 import io
-from PIL import Image
-
 
 # testing purpose
 import psutil
@@ -133,8 +131,29 @@ def main(tensor):
     ######## Image byte ########
     tensor = io.BytesIO(tensor)
 
-    dice_score = 0
+    img = torch.tensor(imageio.imread(tensor), dtype=torch.float32)/255.0
+    img = img.half()
+    print("segmenting file")
+    img = img.permute(2, 0, 1).unsqueeze(0).to(device=device, dtype=torch.float32)
+    # dice_score = 0
 
+    mask_pred = net(img)
+    print("done1")
+    print('RAM memory % used:', psutil.virtual_memory()[2])
+    showmask = mask_pred.argmax(dim=1).squeeze()
+    print("showmask", showmask)
+    print("done2")
+    mask_pred = F.one_hot(mask_pred.argmax(dim=1), net.n_classes).permute(0, 3, 1, 2).float()
+    print("done3")
+    file_dir = str(Python.getPlatform().getApplication().getFilesDir())
+    out2 = join(dirname(file_dir), 'output/result_import_0.png')
+    print(out2)
+    plt.imsave(out2, showmask.detach().cpu().numpy())
+
+    return
+
+'''
+#################################################################################
     list_of_ram = []
 
     plt.figure(figsize=(12, 4))
@@ -215,3 +234,4 @@ def main(tensor):
 
 
     return
+'''

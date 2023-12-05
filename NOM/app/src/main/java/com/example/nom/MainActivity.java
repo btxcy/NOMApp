@@ -1,23 +1,69 @@
 package com.example.nom;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 
-import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 
 public class MainActivity extends AppCompatActivity {
 
+    byte[] byte_array;
+
+    ActivityResultLauncher<Intent> activityResultLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    new ActivityResultCallback<ActivityResult>() {
+                        @Override
+                        public void onActivityResult(ActivityResult o) {
+                            int result = o.getResultCode();
+                            Intent data = o.getData();
+
+                            if (result == RESULT_OK) {
+                                // Toast.makeText(MainActivity.this, "Passed", Toast.LENGTH_LONG).show();
+                                Uri imageUri = data.getData();
+
+                                try {
+                                    // decode the image
+                                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                                    byte_array = stream.toByteArray();
+
+
+                                    // System.out.println(byte_array);
+                                    Toast.makeText(MainActivity.this, "Passed Tensor", Toast.LENGTH_LONG).show();
+
+                                    run();
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            else {
+                                Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+            );
 
 
     @Override
@@ -25,39 +71,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button start = (Button) findViewById(R.id.start);
-        TextView status_txt = (TextView) findViewById(R.id.status);
+        Button cam = (Button) findViewById(R.id.cam);
+        Button lib = (Button) findViewById(R.id.lib);
+        Button run_b = (Button) findViewById(R.id.run);
 
         memory();
 
-        start.setOnClickListener(new View.OnClickListener() {
+        cam.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View view) {
-                status_txt.setVisibility(View.GONE);
-                Log.d("debug", "run0");
-                run();
-                Log.d("debug", "run1");
-                // status.setText(result);
-                status_txt.setVisibility(View.VISIBLE);
             }
         });
 
-//        if (should_start) {
-//
-//            status.setText("Working...");
-//            if (!Python.isStarted()) {
-//                Python.start(new AndroidPlatform(MainActivity.this));
-//            }
-//            Python py = Python.getInstance();
-//            PyObject pyobj = py.getModule("detect_UNetFR");
-//
-//            PyObject obj = pyobj.callAttr("main");
-//
-//            should_start = false;
-//
-//            status.setText(obj.toString());
-//        }
+        lib.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                activityResultLauncher.launch(intent);
+            }
+        });
     }
 
     void memory() {
@@ -81,9 +116,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d("debug", "run4");
         Python py = Python.getInstance();
         Log.d("debug", "run5");
-        PyObject pyobj = py.getModule("detect_UNetFR");
+        PyObject pyobj = py.getModule("lib_UNetFR");
         Log.d("debug", "run6");
-        PyObject obj = pyobj.callAttr("main");
+        PyObject obj = pyobj.callAttr("main", byte_array);
         Log.d("debug", "run7");
         // return pyobj.toString();
     }
