@@ -15,6 +15,8 @@ import io
 
 # testing purpose
 import psutil
+import torchvision.transforms as transforms
+from PIL import Image
 
 
 
@@ -141,7 +143,6 @@ def main(tensor):
     print("done1")
     print('RAM memory % used:', psutil.virtual_memory()[2])
     showmask = mask_pred.argmax(dim=1).squeeze()
-    print("showmask", showmask)
     print("done2")
     mask_pred = F.one_hot(mask_pred.argmax(dim=1), net.n_classes).permute(0, 3, 1, 2).float()
     print("done3")
@@ -150,7 +151,23 @@ def main(tensor):
     print(out2)
     plt.imsave(out2, showmask.detach().cpu().numpy())
 
-    return
+
+    print("showmask:", showmask)
+
+    img_byte = showmask.cpu()
+
+    # Convert the tensor to float and scale if necessary
+    if img_byte.dtype == torch.int64:
+        # Convert to float and scale to [0, 1] if the values are not already in this range
+        img_byte = img_byte.float() / img_byte.max()
+    to_pil = transforms.ToPILImage()
+    image = to_pil(img_byte)
+    # numpy_tensor = np.transpose(numpy_tensor, (1, 2, 0))
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    img_byte_arr = img_byte_arr.getvalue()
+
+    return img_byte_arr
 
 '''
 #################################################################################

@@ -11,9 +11,6 @@ import matplotlib.pyplot as plt
 import imageio
 from com.chaquo.python import Python
 
-import io
-from PIL import Image
-
 
 # testing purpose
 import psutil
@@ -103,7 +100,7 @@ def cleanUNet(model):
 
 
 
-def main(tensor):
+def main():
 
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = torch.device('cpu')
@@ -129,12 +126,8 @@ def main(tensor):
     fs_im, fullfs_im = loadFiles_plus(input_dir, 'png')
     fs_gt, fullfs_gt = loadFiles_plus(mask_dir, 'png')
 
-
-    ######## Image byte ########
-    tensor = io.BytesIO(tensor)
-
     dice_score = 0
-    
+
     # file directory
     file_dir = str(Python.getPlatform().getApplication().getFilesDir())
     # mem init
@@ -146,7 +139,7 @@ def main(tensor):
 
     plt.figure(figsize=(12, 4))
     for i in range(len(fullfs_im)):
-        
+
         # ram check
         # Getting % usage of virtual_memory (3rd field)
         print('RAM memory % used:', psutil.virtual_memory()[2])
@@ -154,12 +147,7 @@ def main(tensor):
         print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
         mem_usage.append(psutil.virtual_memory()[3]/1000000000)
 
-        # print("here")
-        # print(imageio.imread(fullfs_im[i]))
-        # exit()
-
         img = torch.tensor(imageio.imread(fullfs_im[i]), dtype=torch.float32)/255.0
-
         img = img.half()
 
         print("env path:", os.environ['HOME'])
@@ -203,7 +191,7 @@ def main(tensor):
         mask_pred = torch.cat((mask_pred, last_column), dim=3)
         ###########################
         '''
-        
+
 
         mask_pred = net(img)
 
@@ -257,7 +245,7 @@ def main(tensor):
         f.write("\n")
         f.close()
 
-    
+
 
 
     print("average Dice Score:", dice_score.item()/len(fullfs_im))
@@ -268,3 +256,5 @@ def main(tensor):
     f.close()
 
     return
+
+main()
