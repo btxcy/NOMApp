@@ -123,39 +123,8 @@ public class MainActivity extends AppCompatActivity {
         run_b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "Start Running", Toast.LENGTH_LONG).show();
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Run Python script using Chaquopy
-                        if (!Python.isStarted()) {
-                            Log.d("debug", "run3");
-                            Python.start(new AndroidPlatform(MainActivity.this));
-                        }
-                        Log.d("debug", "run4");
-                        Python py = Python.getInstance();
-                        Log.d("debug", "run5");
-                        PyObject pyobj = py.getModule("lib_UNetFR");
-                        Log.d("debug", "run6");
-                        PyObject obj = pyobj.callAttr("main", byte_array);
-                        Log.d("debug", "run7");
-                        // return pyobj.toString();
-
-                        // Run on the main thread after script is executed
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Update UI, for example, showing a Toast
-                                Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
-                                saveImage();
-                                // Continue with the result
-                                // continueWithResult(result.toString());
-                            }
-                        });
-                    }
-                });
-
-
+                folder_creation();
+                run_bulk();
             }
         });
     }
@@ -206,6 +175,48 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("available memory", String.format ("%.0f", availableMegs));
         Log.d("percentage used memory", String.format ("%.0f", percentAvail));
+    }
+
+    void run_bulk() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Running...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                // Run Python script using Chaquopy
+                if (!Python.isStarted()) {
+                    Log.d("debug", "run3");
+                    Python.start(new AndroidPlatform(MainActivity.this));
+                }
+                Log.d("debug", "run4");
+                Python py = Python.getInstance();
+                Log.d("debug", "run5");
+                PyObject pyobj = py.getModule("detect_UNetFR");
+                Log.d("debug", "run6");
+//                result = pyobj.callAttr("main", byte_array).toJava(byte[].class);
+//                Log.d("debug", "run7");
+                // return pyobj.toString();
+//                bitmap_result = BitmapFactory.decodeByteArray(result, 0, result.length);
+
+                // Run on the main thread after script is executed
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // saveImage();
+                        // Update UI, for example, showing a Toast
+                        Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+
+                        // Continue with the result
+                        // continueWithResult(result.toString());
+                        // deleteAppDirectory("tensor");
+                    }
+                });
+            }
+        });
     }
     void run() {
         // Display a Toast message from the background thread
