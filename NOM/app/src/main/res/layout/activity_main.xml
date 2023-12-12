@@ -11,22 +11,38 @@
         android:orientation="vertical"
         android:layout_gravity="center">
 
-        <TextView
-            android:id="@+id/status"
+<!--        <TextView-->
+<!--            android:id="@+id/status"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:padding="5dp"-->
+<!--            android:text="Press to Start"-->
+<!--            android:textSize="50sp"-->
+<!--            android:layout_gravity="center"-->
+<!--            tools:ignore="HardcodedText" />-->
+
+        <Button
+            android:id="@+id/cam"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text="Press to Start"
-            android:textSize="50sp"
             android:layout_gravity="center"
+            android:text="Camera"
             tools:ignore="HardcodedText" />
 
         <Button
-            android:id="@+id/start"
+            android:id="@+id/lib"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Start"
+            android:text="Library"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            android:id="@+id/run"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Run"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>

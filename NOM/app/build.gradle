@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.nom"
-        minSdk 23
+        minSdk 28
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -30,7 +30,7 @@ android {
                 install "matplotlib"
                 install "imageio"
                 install "psutil"
-                // install "mkl-2024.0.0-py2.py3-none-manylinux1_i686.whl"
+                install "pillow"
             }
         }
     }
@@ -46,12 +46,17 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.example.nom'
 }
 
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
+    implementation 'org.pytorch:pytorch_android:1.10.0'
+    implementation 'org.pytorch:pytorch_android_torchvision:1.10.0'
+    implementation 'androidx.activity:activity:1.8.1'
+    implementation 'androidx.fragment:fragment:1.6.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

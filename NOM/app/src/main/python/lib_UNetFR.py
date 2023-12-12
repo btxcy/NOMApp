@@ -11,9 +11,12 @@ import matplotlib.pyplot as plt
 import imageio
 from com.chaquo.python import Python
 
+import io
 
 # testing purpose
 import psutil
+import torchvision.transforms as transforms
+from PIL import Image
 
 
 
@@ -100,7 +103,7 @@ def cleanUNet(model):
 
 
 
-def main():
+def main(tensor):
 
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = torch.device('cpu')
@@ -126,82 +129,84 @@ def main():
     fs_im, fullfs_im = loadFiles_plus(input_dir, 'png')
     fs_gt, fullfs_gt = loadFiles_plus(mask_dir, 'png')
 
-    dice_score = 0
 
-    # file directory
+    ######## Image byte ########
+    tensor = io.BytesIO(tensor)
+
+    img = torch.tensor(imageio.imread(tensor), dtype=torch.float32)/255.0
+    img = img.half()
+    print("segmenting file")
+    img = img.permute(2, 0, 1).unsqueeze(0).to(device=device, dtype=torch.float32)
+    # dice_score = 0
+
+    mask_pred = net(img)
+    print("done1")
+    print('RAM memory % used:', psutil.virtual_memory()[2])
+    showmask = mask_pred.argmax(dim=1).squeeze()
+    print("done2")
+    mask_pred = F.one_hot(mask_pred.argmax(dim=1), net.n_classes).permute(0, 3, 1, 2).float()
+    print("done3")
     file_dir = str(Python.getPlatform().getApplication().getFilesDir())
-    # mem init
-    pt_mem = join(dirname(file_dir), 'mem_usage.txt') #x5
-    f = open(pt_mem, "w")
-    f.write("Memory usage: \n")
-    f.close()
-    mem_usage = []
+    out2 = join(dirname(file_dir), 'output/result_import_0.png')
+    print(out2)
+    plt.imsave(out2, showmask.detach().cpu().numpy())
+
+
+    print("showmask:", showmask)
+
+    img_byte = showmask.cpu()
+
+    # Convert the tensor to float and scale if necessary
+    if img_byte.dtype == torch.int64:
+        # Convert to float and scale to [0, 1] if the values are not already in this range
+        img_byte = img_byte.float() / img_byte.max()
+    to_pil = transforms.ToPILImage()
+    image = to_pil(img_byte)
+    # numpy_tensor = np.transpose(numpy_tensor, (1, 2, 0))
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    img_byte_arr = img_byte_arr.getvalue()
+
+    return img_byte_arr
+
+'''
+#################################################################################
+    list_of_ram = []
 
     plt.figure(figsize=(12, 4))
     for i in range(len(fullfs_im)):
 
-        # ram check
-        # Getting % usage of virtual_memory (3rd field)
-        print('RAM memory % used:', psutil.virtual_memory()[2])
-        # Getting usage of virtual_memory in GB (4th field)
-        print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
-        mem_usage.append(psutil.virtual_memory()[3]/1000000000)
+        # print("here")
+        # print(imageio.imread(fullfs_im[i]))
+        # exit()
 
         img = torch.tensor(imageio.imread(fullfs_im[i]), dtype=torch.float32)/255.0
-        img = img.half()
 
-        print("env path:", os.environ['HOME'])
-        # This line goes with the tensor cut part
-        # img = img[:,:-1,:]
-        # print(img.shape)
-        # input("eee")
+        img = img.half()
         lab = torch.tensor(imageio.imread(fullfs_gt[i]), dtype=torch.float32)/255.0
 
         print("segmenting files:", fullfs_im[i])
 
+
         img = img.permute(2, 0, 1).unsqueeze(0).to(device=device, dtype=torch.float32)
         lab = lab.unsqueeze(0).to(device=device, dtype=torch.long)
 
-        '''
-        ###########################
-        # run the tensor cut here #
-        # Assuming image_tensor is of shape [B, C, H, W]
-        _, C, H, W = img.shape
-        center_y, center_x = H // 2, W // 2
-
-        # Cut the tensor into four pieces
-        upper_left = img[:, :, 0:center_y, 0:center_x]
-        upper_right = img[:, :, 0:center_y, center_x:W]
-        lower_left = img[:, :, center_y:H, 0:center_x]
-        lower_right = img[:, :, center_y:H, center_x:W]
-
-        # Process each quadrant with the net (Placeholder for your neural network processing)
-        upper_left_processed = net(upper_left)
-        upper_right_processed = net(upper_right)
-        lower_left_processed = net(lower_left)
-        lower_right_processed = net(lower_right)
-
-        # Combine the processed quadrants
-        top_half = torch.cat((upper_left_processed, upper_right_processed), dim=3)
-        bottom_half = torch.cat((lower_left_processed, lower_right_processed), dim=3)
-        mask_pred = torch.cat((top_half, bottom_half), dim=2)
-
-        # revise the size
-        last_column = mask_pred[:, :, :, -1].unsqueeze(-1)  # Extract and add a new dimension to fit
-        mask_pred = torch.cat((mask_pred, last_column), dim=3)
-        ###########################
-        '''
-
-
         mask_pred = net(img)
-
-        # print(mask_pred.shape)
         print("done1")
+
+        # ram check
+        # Getting % usage of virtual_memory ( 3rd field)
+        print('RAM memory % used:', psutil.virtual_memory()[2])
+        # Getting usage of virtual_memory in GB ( 4th field)
+        # print('RAM Used (GB):', psutil.virtual_memory()[3]/1000000000)
+
+        list_of_ram.append(psutil.virtual_memory()[3]/1000000000)
 
         showmask = mask_pred.argmax(dim=1).squeeze()
         print("done2")
         showgt = lab.squeeze()
         print("done3")
+
         lab = F.one_hot(lab, net.n_classes).permute(0, 3, 1, 2).float()
         print("done4")
         mask_pred = F.one_hot(mask_pred.argmax(dim=1), net.n_classes).permute(0, 3, 1, 2).float()
@@ -221,40 +226,29 @@ def main():
         # plt.imshow(showmask.detach().cpu().numpy())
         # plt.title("Binary Mask")
 
+        # out_dir = join(dirname(__file__), "testimgs/output/result.png")
+        file_dir = str(Python.getPlatform().getApplication().getFilesDir())
+        print(file_dir)
         out0 = join(dirname(file_dir), 'output/result' + str(i) + '_0.png')
         print(out0)
         out1 = join(dirname(file_dir), 'output/result' + str(i) + '_1.png')
         print(out1)
         out2 = join(dirname(file_dir), 'output/result' + str(i) + '_2.png')
         print(out2)
-        # out0 = join(dirname(__file__), 'output_test/result' + str(i) + '_0.png')
-        # print(out0)
-        # out1 = join(dirname(__file__), 'output_test/result' + str(i) + '_1.png')
-        # print(out1)
-        # out2 = join(dirname(__file__), 'output_test/result' + str(i) + '_2.png')
-        # print(out2)
         plt.imsave(out0, img.squeeze().permute(1, 2, 0).detach().cpu().numpy())
         plt.imsave(out1, showgt.detach().cpu().numpy())
         plt.imsave(out2, showmask.detach().cpu().numpy())
 
+        # exit()
+
         plt.pause(0.1)
-
-        f = open(pt_mem, "a")
-        f.write("Main usage {}: ".format(i))
-        f.write(str(mem_usage))
-        f.write("\n")
-        f.close()
-
-
 
 
     print("average Dice Score:", dice_score.item()/len(fullfs_im))
 
-    f = open(pt_mem, "a")
-    f.write("Dice Score: {}".format(dice_score.item()/len(fullfs_im)))
-    f.write("\n")
-    f.close()
+    for i in range(len(list_of_ram)):
+        print('{} picture: RAM Used (GB): {}'.format(i, list_of_ram[i]))
+
 
     return
-
-main()
+'''
