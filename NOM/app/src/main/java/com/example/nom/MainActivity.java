@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     Bitmap bitmap_result;
     byte[] result;
 
+    // user chose the picture from the photo lib
+    // get the image tensor here
     ActivityResultLauncher<Intent> activityResultLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -97,11 +99,13 @@ public class MainActivity extends AppCompatActivity {
         memory();
         deleteAppDirectory("output");
 
+        // ask for file access permission
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE_REQUEST_CODE);
         }
 
-
+        // to be implemented
+        // camera feature
         cam.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -109,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // select photo in library by user
         lib.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -120,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // run bulk images
         run_b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // result of the file access permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -144,7 +151,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    // save the image into the photo library
+    // if want to directly make the picture show in the application, change here (future plan)
     void saveImage() {
         File picturesDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File imageFile = new File(picturesDirectory, "result_import" + ".png");
@@ -158,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // notify to the photo library about the new image
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(imageFile.getAbsolutePath());
         Uri contentUri = Uri.fromFile(f);
@@ -165,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.this.sendBroadcast(mediaScanIntent);
     }
 
+    // memory check (show the RAM usage)
     void memory() {
         ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -177,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("percentage used memory", String.format ("%.0f", percentAvail));
     }
 
+    // run bulk images function, same as run but can run more images
     void run_bulk() {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
@@ -218,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    // run only one image (will be optimized in the future plan (combine run_bulk and run)
     void run() {
         // Display a Toast message from the background thread
         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -261,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // this function helps to create the folder that needs to store the output and tensors (optimized version)
     void folder_creation() {
         PackageManager m = getPackageManager();
         String s = getPackageName();
@@ -306,6 +320,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // delete the stored unused tensors to release the storage
+    // will only run after the running process stops
     private void deleteAppDirectory(String dirName) {
         PackageManager m = getPackageManager();
         String packageName = getPackageName();
@@ -327,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // helper function to the delete tensor and output directory
     private boolean deleteDirectory(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
