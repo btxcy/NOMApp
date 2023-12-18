@@ -20,18 +20,11 @@ try:
 
         # convert to numpy
         num_tensor = torch.view_as_complex(V).detach().numpy()
+        # do the irfft
         return_value_numpy = np.fft.irfft(num_tensor, n=V.shape[1], axis=1)
-
-        # print(return_value_numpy)
-        # print(torch.fft.irfft(torch.view_as_complex(V), n=V.shape[1], dim=1))
-
-        # print(torch.from_numpy(return_value_numpy))
-
-        # exit()
-        # return torch.fft.irfft(torch.view_as_complex(V), n=V.shape[1], dim=1)
-
+        # convert from numpy to tensor back
         return torch.from_numpy(return_value_numpy).float()
-    
+
 except ImportError:
     def dct1_rfft_impl(x):
         return torch.rfft(x, 1)
