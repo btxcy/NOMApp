@@ -11,6 +11,7 @@ The folder `NOM` is code of our Android application.
 ```
 .
 ├──README.md
+├──LICENSE
 └──NOM (code of Android application)
    └── ...
 
