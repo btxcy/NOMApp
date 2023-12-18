@@ -4,6 +4,16 @@ import psutil
 from os.path import dirname, join
 import torch
 
+'''
+This file is the original source code. Nothing has changed except the memory usage
+and percentage have been logged to the text file
+The purpose is to get the data of the original implementation
+Method:
+- assign the application directory
+- append the memory usages in an empty list
+- output the list into the text file
+'''
+
 
 class UNet(nn.Module):
     def __init__(self, n_channels, n_classes, bilinear=False):
@@ -34,7 +44,7 @@ class UNet(nn.Module):
         f = open(self.pt_mem, "a")
         f.write("Run {}: \n".format(self.count))
         self.count += 1
-        
+
         x1 = self.inc(x)
         self.mem_usage.append(psutil.virtual_memory()[3]/1000000000)
         print(psutil.virtual_memory()[3]/1000000000)
@@ -72,14 +82,14 @@ class UNet(nn.Module):
         f.close()
         return logits
 
-    # def use_checkpointing(self):
-    #     self.inc = torch.utils.checkpoint(self.inc)
-    #     self.down1 = torch.utils.checkpoint(self.down1)
-    #     self.down2 = torch.utils.checkpoint(self.down2)
-    #     self.down3 = torch.utils.checkpoint(self.down3)
-    #     self.down4 = torch.utils.checkpoint(self.down4)
-    #     self.up1 = torch.utils.checkpoint(self.up1)
-    #     self.up2 = torch.utils.checkpoint(self.up2)
-    #     self.up3 = torch.utils.checkpoint(self.up3)
-    #     self.up4 = torch.utils.checkpoint(self.up4)
-    #     self.outc = torch.utils.checkpoint(self.outc)
+    def use_checkpointing(self):
+        self.inc = torch.utils.checkpoint(self.inc)
+        self.down1 = torch.utils.checkpoint(self.down1)
+        self.down2 = torch.utils.checkpoint(self.down2)
+        self.down3 = torch.utils.checkpoint(self.down3)
+        self.down4 = torch.utils.checkpoint(self.down4)
+        self.up1 = torch.utils.checkpoint(self.up1)
+        self.up2 = torch.utils.checkpoint(self.up2)
+        self.up3 = torch.utils.checkpoint(self.up3)
+        self.up4 = torch.utils.checkpoint(self.up4)
+        self.outc = torch.utils.checkpoint(self.outc)

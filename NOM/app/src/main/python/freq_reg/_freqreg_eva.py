@@ -10,7 +10,12 @@ from com.chaquo.python import Python
 import psutil
 from os.path import dirname, join
 
-
+'''
+This file is the optimized version.
+Method:
+- make the idct only runs once
+- free the unused tensor
+'''
 
 def getZIdx_4d(data):
 
@@ -123,15 +128,10 @@ class  Conv2d_FR4d(nn.Module):
 
     def forward(self, data):
 
-        #print(self.flag_wei)
         if self.flag_weight == 0:
-            # print("1st")
-            # print(self.flag_wei)
             self.o_weight = idct_4d(self.weight)
             self.flag_weight += 1
             del self.weight
-            # print(self.flag_wei)
-            #print("Run Init2")
 
         output = F.conv2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
         torch.save(output, self.pt_path_fr)
@@ -167,7 +167,7 @@ class Linear_FR2d(nn.Module):
 
         self.weightrate = 0
         self.weightnum = -1
-        
+
         # make the idct only runs once
         self.flag_weight = 0
 
@@ -304,7 +304,6 @@ class  ConvTranspose2d_FR4d(nn.Module):
 
         self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
         self.pt_path_fr_conv_transpose = join(dirname(self.file_dir), 'tensor/tensor_fr_conv_transpose.pt') #x1
-        # self.pt_path_fr_conv_transpose = join(dirname(__file__), 'output_tensors/tensor_fr_conv_transpose.pt') #x1
 
     def reset(self):
         self.minnum = max(round(self.weight.numel()*self.minrate//self.groups), 16)
@@ -313,15 +312,11 @@ class  ConvTranspose2d_FR4d(nn.Module):
 
     def forward(self, data):
 
+        # only execute the idct once to save memory
         if self.flag_weight == 0:
-            # print("2nd")
-            # print(self.flag_wei)
             self.o_weight = idct_4d(self.weight)
             self.flag_weight += 1
             del self.weight
-            # print(self.flag_wei)
-
-            # print("Run Init1")
 
         x = F.conv_transpose2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups)
 

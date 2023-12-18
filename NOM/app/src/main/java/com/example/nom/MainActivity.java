@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent data = o.getData();
 
                             if (result == RESULT_OK) {
-                                // Toast.makeText(MainActivity.this, "Passed", Toast.LENGTH_LONG).show();
+                                // get the user selected image data
                                 assert data != null;
                                 Uri imageUri = data.getData();
 
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                                     Toast.makeText(MainActivity.this, "Passed Tensor", Toast.LENGTH_LONG).show();
 
                                     run();
-                                } catch (FileNotFoundException e) {
+                                } catch (FileNotFoundException e) { // if no image is found
                                     e.printStackTrace();
                                 }
                             }
@@ -92,9 +92,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button cam = (Button) findViewById(R.id.cam);
-        Button lib = (Button) findViewById(R.id.lib);
-        Button run_b = (Button) findViewById(R.id.run);
+        Button cam = findViewById(R.id.cam);
+        Button lib = findViewById(R.id.lib);
+        Button run_b = findViewById(R.id.run);
 
         memory();
         deleteAppDirectory("output");
@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         activityManager.getMemoryInfo(mi);
-        double availableMegs = mi.availMem / 0x100000L;
+        double availableMegs = (double) mi.availMem / 0x100000L;
 
         double percentAvail = 100 - (mi.availMem / (double) mi.totalMem * 100.0);
 
@@ -195,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Running...", Toast.LENGTH_SHORT).show();
             }
         });
+        // handle the async problem
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -208,10 +209,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("debug", "run5");
                 PyObject pyobj = py.getModule("detect_UNetFR");
                 Log.d("debug", "run6");
-//                result = pyobj.callAttr("main", byte_array).toJava(byte[].class);
-//                Log.d("debug", "run7");
-                // return pyobj.toString();
-//                bitmap_result = BitmapFactory.decodeByteArray(result, 0, result.length);
 
                 // Run on the main thread after script is executed
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -220,10 +217,8 @@ public class MainActivity extends AppCompatActivity {
                         // saveImage();
                         // Update UI, for example, showing a Toast
                         Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
-
                         // Continue with the result
-                        // continueWithResult(result.toString());
-                        // deleteAppDirectory("tensor");
+                        deleteAppDirectory("tensor");
                     }
                 });
             }
@@ -239,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Running...", Toast.LENGTH_SHORT).show();
             }
         });
+        // handle the async problem
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -264,9 +260,7 @@ public class MainActivity extends AppCompatActivity {
                         saveImage();
                         // Update UI, for example, showing a Toast
                         Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
-
                         // Continue with the result
-                        // continueWithResult(result.toString());
                         deleteAppDirectory("tensor");
                     }
                 });
@@ -322,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
 
     // delete the stored unused tensors to release the storage
     // will only run after the running process stops
+    // parameter: directory name
     private void deleteAppDirectory(String dirName) {
         PackageManager m = getPackageManager();
         String packageName = getPackageName();
@@ -343,7 +338,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // helper function to the delete tensor and output directory
+    // helper function to the delete tensor or output or both directory
+    // parameter: directory name
     private boolean deleteDirectory(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();

@@ -1,13 +1,20 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# import frereg as fr
 import freq_reg._freqreg_eva as fr
 
 from com.chaquo.python import Python
 import psutil
 from os.path import dirname, join
 
+'''
+This file is the optimized version.
+Method:
+- assign the application directory
+- append the memory usages in an empty list
+- free the output for each layers
+- output the list into the text file
+'''
 
 class DoubleConv(nn.Module):
 
@@ -102,7 +109,7 @@ class Up(nn.Module):
                         diffY // 2, diffY - diffY // 2])
         # x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
         #                 diffY // 2, diffY - diffY // 2])
-        
+
         print('RAM Used (GB) for the output pad in Up:', psutil.virtual_memory()[3]/1000000000)
         print('RAM memory % used:', psutil.virtual_memory()[2])
         torch.save(x1, self.pt_path_up1)

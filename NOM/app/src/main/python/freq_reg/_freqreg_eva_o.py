@@ -10,7 +10,10 @@ from com.chaquo.python import Python
 import psutil
 from os.path import dirname, join
 
-
+'''
+This file is the original source code. Nothing has changed
+The purpose is to get the data of the original implementation
+'''
 
 def getZIdx_4d(data):
 
@@ -123,20 +126,9 @@ class  Conv2d_FR4d(nn.Module):
 
     def forward(self, data):
 
-        #print(self.flag_wei)
-        if self.flag_weight == 0:
-            # print("1st")
-            # print(self.flag_wei)
-            self.o_weight = idct_4d(self.weight)
-            self.flag_weight += 1
-            del self.weight
-            # print(self.flag_wei)
-            #print("Run Init2")
-
+        self.o_weight = idct_4d(self.weight)
+        self.flag_weight += 1
         output = F.conv2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
-        # torch.save(output, self.pt_path_fr)
-        # del output
-
         return output
 
 
