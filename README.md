@@ -39,4 +39,4 @@ The folder `NOM` is code of our Android application.
 1. Download the APK on your own Android phone [[click here]](https://drive.google.com/file/d/1avjNmbqO9Ja4_klfesDFt6P9S98Cse32/view?usp=sharing).
 2. Click the Application on your own phone.
 
-*There may be a case where your phone does not allow you to install this application. You would need to turn on the setting that indicates: "allow the unknown application feature".*
+*There may be a case where your phone does not allow you to install this application. You would need to turn on the setting that indicates: "allow to download the unknown application" feature.*
