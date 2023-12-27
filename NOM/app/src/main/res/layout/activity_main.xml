@@ -1,50 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal" >
+    android:layout_height="match_parent" >
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center">
-
-<!--        <TextView-->
-<!--            android:id="@+id/status"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:padding="5dp"-->
-<!--            android:text="Press to Start"-->
-<!--            android:textSize="50sp"-->
-<!--            android:layout_gravity="center"-->
-<!--            tools:ignore="HardcodedText" />-->
+        android:layout_centerInParent="true"
+        tools:ignore="UselessParent">
 
         <Button
             android:id="@+id/cam"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:text="Camera"
+            android:visibility="visible"
+            android:layout_gravity="center_horizontal"
             tools:ignore="HardcodedText" />
 
         <Button
             android:id="@+id/lib"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:text="Library"
+            android:layout_gravity="center_horizontal"
             tools:ignore="HardcodedText" />
 
         <Button
             android:id="@+id/run"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_horizontal"
             android:text="Run"
+            android:visibility="gone"
+            tools:ignore="HardcodedText" />
+
+        <ImageView
+            android:id="@+id/result_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="Result"
+            android:visibility="gone"
+            tools:ignore="HardcodedText" />
+
+        <ProgressBar
+            android:id="@+id/run_bar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingTop="50dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/run_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Running..."
+            android:visibility="gone"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>

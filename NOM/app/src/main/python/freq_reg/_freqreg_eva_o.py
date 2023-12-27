@@ -60,7 +60,6 @@ def ZIdx2Int(inputmat):
     return intZidx
 
 
-
 class  Conv2d_FR4d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True, minrate=0.01, droprate=0.01, dynamicdrop=False, groups=1, dilation=1):
         super().__init__()
@@ -95,13 +94,6 @@ class  Conv2d_FR4d(nn.Module):
         self.weightrate = 0
         self.weightnum = -1
 
-        # make the idct only runs once
-        self.flag_weight = 0
-
-        # self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
-        # self.pt_path_fr = join(dirname(self.file_dir), 'tensor/tensor_fr.pt') #x1
-
-
 
     def setDroprate(self, droprate):
         self.droprate = droprate
@@ -126,9 +118,7 @@ class  Conv2d_FR4d(nn.Module):
 
     def forward(self, data):
 
-        self.o_weight = idct_4d(self.weight)
-        self.flag_weight += 1
-        output = F.conv2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
+        output = F.conv2d(data, self.weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups, dilation=self.dilation)
         return output
 
 
@@ -160,9 +150,6 @@ class Linear_FR2d(nn.Module):
         self.weightrate = 0
         self.weightnum = -1
 
-        # make the idct only runs once
-        self.flag_weight = 0
-
     def setDroprate(self, droprate):
         self.droprate = droprate
 
@@ -188,15 +175,7 @@ class Linear_FR2d(nn.Module):
 
     def forward(self, data):
 
-        if self.flag_weight == 0:
-            # print("2nd")
-            # print(self.flag_wei)
-            self.o_weight = idct_2d(self.weight)
-            self.flag_weight += 1
-            # print(self.flag_wei)
-            # print("Run Init1")
-
-        output = F.linear(data, self.o_weight, self.bias)
+        output = F.linear(data, self.weight, self.bias)
 
         return output
 
@@ -291,34 +270,13 @@ class  ConvTranspose2d_FR4d(nn.Module):
         if directdrop:
             self.dropcnt = self.minnum + 1
 
-        # make the idct only runs once
-        self.flag_weight = 0
-
-        # self.file_dir = str(Python.getPlatform().getApplication().getFilesDir())
-        # self.pt_path_fr_conv_transpose = join(dirname(self.file_dir), 'tensor/tensor_fr_conv_transpose.pt') #x1
-        # self.pt_path_fr_conv_transpose = join(dirname(__file__), 'output_tensors/tensor_fr_conv_transpose.pt') #x1
-
     def reset(self):
         self.minnum = max(round(self.weight.numel()*self.minrate//self.groups), 16)
         self.IDROP.fill_(1.0)
         self.dropcnt = self.minnum + 10
 
     def forward(self, data):
-
-        if self.flag_weight == 0:
-            # print("2nd")
-            # print(self.flag_wei)
-            self.o_weight = idct_4d(self.weight)
-            self.flag_weight += 1
-            del self.weight
-            # print(self.flag_wei)
-
-            # print("Run Init1")
-
-        x = F.conv_transpose2d(data, self.o_weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups)
-
-        # torch.save(x, self.pt_path_fr_conv_transpose)
-        # del x
+        x = F.conv_transpose2d(data, self.weight, self.bias, stride=self.stride, padding=self.padding, groups=self.groups)
 
         return x
 
