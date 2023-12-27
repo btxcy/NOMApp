@@ -79,8 +79,6 @@ class  Conv2d_FR4d(nn.Module):
         else:
             self.bias = None
 
-
-
         self.register_buffer("ZMAT",    ZIdx2Int(getZIdx_4d(torch.empty(out_channels, in_channels//groups, kernel_size, kernel_size))))
         self.register_buffer("IDROP",  torch.zeros(out_channels, in_channels//groups, kernel_size, kernel_size) + 1.0)
 
@@ -197,12 +195,8 @@ class Linear_FR2d(nn.Module):
     def forward(self, data):
 
         if self.flag_weight == 0:
-            # print("2nd")
-            # print(self.flag_wei)
             self.o_weight = idct_2d(self.weight)
             self.flag_weight += 1
-            # print(self.flag_wei)
-            # print("Run Init1")
 
         output = F.linear(data, self.o_weight, self.bias)
 

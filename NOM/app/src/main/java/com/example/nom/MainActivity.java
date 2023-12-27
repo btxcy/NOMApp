@@ -16,6 +16,9 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -46,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_WRITE_STORAGE_REQUEST_CODE = 1;
     Bitmap bitmap_result;
     byte[] result;
+    // run flag
+    int run;
+    // UI
+    ProgressBar running;
+    TextView run_text;
+    ImageView result_image;
 
     // user chose the picture from the photo lib
     // get the image tensor here
@@ -70,11 +79,6 @@ public class MainActivity extends AppCompatActivity {
                                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                                     byte_array = stream.toByteArray();
-
-
-                                    // System.out.println(byte_array);
-                                    Toast.makeText(MainActivity.this, "Passed Tensor", Toast.LENGTH_LONG).show();
-
                                     run();
                                 } catch (FileNotFoundException e) { // if no image is found
                                     e.printStackTrace();
@@ -91,13 +95,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        run = 0;
         Button cam = findViewById(R.id.cam);
         Button lib = findViewById(R.id.lib);
         Button run_b = findViewById(R.id.run);
+        running = findViewById(R.id.run_bar);
+        run_text = findViewById(R.id.run_text);
+        result_image = findViewById(R.id.result_image);
 
         memory();
-        deleteAppDirectory("output");
+        // in case the program delete while running
+        if (run == 0) {
+            deleteAppDirectory("output");
+        }
 
         // ask for file access permission
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -117,6 +127,8 @@ public class MainActivity extends AppCompatActivity {
         lib.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                result_image.setVisibility(View.GONE);
+                run = 1;
                 folder_creation();
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -129,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
         run_b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                result_image.setVisibility(View.GONE);
+                run = 1;
                 folder_creation();
                 run_bulk();
             }
@@ -154,6 +168,9 @@ public class MainActivity extends AppCompatActivity {
     // save the image into the photo library
     // if want to directly make the picture show in the application, change here (future plan)
     void saveImage() {
+        // show the result image in App
+        result_image.setImageBitmap(bitmap_result);
+        result_image.setVisibility(View.VISIBLE);
         File picturesDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File imageFile = new File(picturesDirectory, "result_import" + ".png");
         try (OutputStream out = new FileOutputStream(imageFile)) {
@@ -192,7 +209,8 @@ public class MainActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this, "Running...", Toast.LENGTH_SHORT).show();
+                running.setVisibility(View.VISIBLE);
+                run_text.setVisibility(View.VISIBLE);
             }
         });
         // handle the async problem
@@ -209,16 +227,20 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("debug", "run5");
                 PyObject pyobj = py.getModule("detect_UNetFR");
                 Log.d("debug", "run6");
+                PyObject bool = pyobj.callAttr("main", "False");
 
                 // Run on the main thread after script is executed
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         // saveImage();
-                        // Update UI, for example, showing a Toast
-                        Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                        // Update UI
+                        running.setVisibility(View.GONE);
+                        run_text.setVisibility(View.GONE);
                         // Continue with the result
                         deleteAppDirectory("tensor");
+                        // run flag initialized
+                        run = 0;
                     }
                 });
             }
@@ -226,12 +248,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // run only one image (will be optimized in the future plan (combine run_bulk and run)
-    void run() {
+    private void run() {
         // Display a Toast message from the background thread
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this, "Running...", Toast.LENGTH_SHORT).show();
+                running.setVisibility(View.VISIBLE);
+                run_text.setVisibility(View.VISIBLE);
             }
         });
         // handle the async problem
@@ -250,7 +273,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("debug", "run6");
                 result = pyobj.callAttr("main", byte_array).toJava(byte[].class);
                 Log.d("debug", "run7");
-                // return pyobj.toString();
                 bitmap_result = BitmapFactory.decodeByteArray(result, 0, result.length);
 
                 // Run on the main thread after script is executed
@@ -258,10 +280,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         saveImage();
-                        // Update UI, for example, showing a Toast
-                        Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                        // Update UI
+                        running.setVisibility(View.GONE);
+                        run_text.setVisibility(View.GONE);
                         // Continue with the result
                         deleteAppDirectory("tensor");
+                        // run flag initialized
+                        run = 0;
                     }
                 });
             }
@@ -269,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // this function helps to create the folder that needs to store the output and tensors (optimized version)
-    void folder_creation() {
+    private void folder_creation() {
         PackageManager m = getPackageManager();
         String s = getPackageName();
         try {
@@ -279,10 +304,12 @@ public class MainActivity extends AppCompatActivity {
             // Path for the new directory
             String tensor_dir = s + File.separator + "tensor";
             String output_dir = s + File.separator + "output";
+            String log_dir = s + File.separator + "log";
 
             // Create a File object for the new directory
             File t_dir = new File(tensor_dir);
             File o_dir = new File(output_dir);
+            File l_dir = new File(log_dir);
 
             // Check if the directory exists. If not, create it.
             if (!t_dir.exists()) {
@@ -307,6 +334,18 @@ public class MainActivity extends AppCompatActivity {
             }
             else {
                 Log.d("DIR", "Directory already exists: " + o_dir);
+            }
+            // log dir
+            if (!l_dir.exists()) {
+                if (l_dir.mkdir()) {
+                    Log.d("DIR", "Directory created: " + l_dir);
+                }
+                else {
+                    Log.d("DIR", "Failed to create directory: " + l_dir);
+                }
+            }
+            else {
+                Log.d("DIR", "Directory already exists: " + l_dir);
             }
         }
         catch (PackageManager.NameNotFoundException e) {
