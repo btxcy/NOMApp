@@ -105,9 +105,9 @@ public class MainActivity extends AppCompatActivity {
 
         memory();
         // in case the program delete while running
-        if (run == 0) {
-            deleteAppDirectory("output");
-        }
+//        if (run == 0) {
+//            deleteAppDirectory("output");
+//        }
 
         // ask for file access permission
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
